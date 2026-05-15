@@ -12,14 +12,12 @@ export function useSocket() {
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
 
   useEffect(() => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://say.up.railway.app";
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
     console.log("Connecting to backend at:", backendUrl);
     
     const socketInstance: Socket<ServerToClientEvents, ClientToServerEvents> = io(backendUrl, {
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
-      // Adding transports helps with mobile browsers and strict proxies
-      transports: ["websocket", "polling"], 
     });
 
     setSocket(socketInstance);
