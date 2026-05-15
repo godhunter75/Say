@@ -4,6 +4,7 @@ import { ServerToClientEvents, ClientToServerEvents, ChatMessage, UserState } fr
 
 export function useSocket() {
   const [socket, setSocket] = useState<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
   const [userState, setUserState] = useState<UserState>("idle");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -11,12 +12,33 @@ export function useSocket() {
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
 
   useEffect(() => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://say.up.railway.app";
+    console.log("Connecting to backend at:", backendUrl);
+    
     const socketInstance: Socket<ServerToClientEvents, ClientToServerEvents> = io(backendUrl, {
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+      // Adding transports helps with mobile browsers and strict proxies
+      transports: ["websocket", "polling"], 
     });
 
     setSocket(socketInstance);
+
+    socketInstance.on("connect", () => {
+      console.log("Socket connected with id:", socketInstance.id);
+      setIsConnected(true);
+      setErrorMsg(null);
+    });
+
+    socketInstance.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
+      setIsConnected(false);
+    });
+
+    socketInstance.on("connect_error", (error) => {
+      console.error("Socket connection error:", error.message);
+      setErrorMsg(`Connection error: ${error.message}`);
+    });
 
     socketInstance.on("search_started", () => {
       setUserState("searching");
@@ -82,6 +104,7 @@ export function useSocket() {
 
   return {
     socket,
+    isConnected,
     userState,
     messages,
     errorMsg,
