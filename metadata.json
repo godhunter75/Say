@@ -1,0 +1,6 @@
+{
+  "name": "Say",
+  "description": "A 1-vs-1 random text chatting app using React, Node.js, and Socket.IO.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
